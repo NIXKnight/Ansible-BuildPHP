@@ -1,2 +1,60 @@
 ---
 # defaults file for Ansible-BuildPHP
+PHP_VERSION: ""
+PHP_SOURCE_URL: "https://www.php.net/get/php-{{ PHP_VERSION }}.tar.xz/from/this/mirror"
+PHP_BUILD_DEPS:
+  pkg:
+    - "autoconf"
+    - "dpkg-dev"
+    - "file"
+    - "g++"
+    - "gcc"
+    - "libc-dev"
+    - "make"
+    - "pkg-config"
+    - "re2c"
+    - "ca-certificates"
+    - "curl"
+    - "xz-utils"
+    - "gnupg"
+    - "dirmngr"
+  state: "present"
+  install_recommends: "no"
+PHP_BUILD_DEPS_LIBS:
+  pkg:
+    - "libargon2-0-dev"
+    - "libcurl4-openssl-dev"
+    - "libedit-dev"
+    - "libonig-dev"
+    - "libsodium-dev"
+    - "libssl-dev"
+    - "libxml2-dev"
+    - "zlib1g-dev"
+  state: "present"
+  install_recommends: "no"
+PHP_SRC_LOCAL_PATH: "/usr/src"
+PHP_INSTALL_PREFIX: "/usr/local"
+PHP_CONFIG_FILE_DIR: "{{ PHP_INSTALL_PREFIX }}/etc/php"
+PHP_CONFIG_FILE_SCAN_DIR: "{{ PHP_CONFIG_FILE_DIR }}/conf.d"
+PHP_CONFIGURE_OPTIONS:
+  - '--prefix={{ PHP_INSTALL_PREFIX }}'
+  - '--build=$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)'
+  - '--with-mhash'
+  - '--enable-mbstring'
+  - '--enable-mysqlnd'
+  - '--with-password-argon2'
+  - '--with-sodium=shared'
+  - '--with-curl'
+  - '--with-libedit'
+  - '--with-openssl'
+  - '--with-zlib'
+  - '--with-pear'
+  - '--enable-embed=shared'
+  - '--without-sqlite3'
+  - '--without-pdo-sqlite'
+  - '--enable-option-checking=fatal'
+  - '--with-config-file-path="{{ PHP_CONFIG_FILE_DIR }}"'
+  - '--with-config-file-scan-dir="{{ PHP_CONFIG_FILE_SCAN_DIR }}"'
+PHP_CFLAGS: "-fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64"
+PHP_CPPFLAGS: "{{ PHP_CFLAGS }}"
+PHP_LDFLAGS: "-Wl,-O1 -Wl,--hash-style=both -pie"

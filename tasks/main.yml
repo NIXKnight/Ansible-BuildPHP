@@ -1,2 +1,45 @@
 ---
 # tasks file for Ansible-BuildPHP
+- name: Install Updates
+  apt:
+    upgrade: dist
+    update_cache: yes
+
+- name: Prevent Installation of Distribution's PHP Packages
+  copy:
+    src: "files/etc/apt/preferences.d/no-dist-php"
+    dest: "/etc/apt/preferences.d/no-dist-php"
+
+- name: Install PHP Build Dependencies
+  apt:
+    pkg: "{{ item.pkg }}"
+    state: "{{ item.state }}"
+    install_recommends: "{{ item.install_recommends }}"
+  with_items:
+    - "{{ PHP_BUILD_DEPS }}"
+    - "{{ PHP_BUILD_DEPS_LIBS }}"
+
+- name: Download and Extract PHP {{ PHP_VERSION }} Tarball
+  unarchive:
+    remote_src: yes
+    src: "{{ PHP_SOURCE_URL }}"
+    dest: "{{ PHP_SRC_LOCAL_PATH }}"
+
+- name: Run PHP {{ PHP_VERSION }} Configure Script
+  shell: "./configure {% for OPTION in PHP_CONFIGURE_OPTIONS %}{{ OPTION }}{% if not loop.last %} {% endif %}{% endfor %}"
+  args:
+    executable: "/bin/bash"
+    chdir: "{{ PHP_SRC_LOCAL_PATH }}/php-{{ PHP_VERSION }}"
+  environment:
+    CFLAGS: "{{ PHP_CFLAGS }}"
+    CPPFLAGS: "{{ PHP_CPPFLAGS }}"
+    LDFLAGS: "{{ PHP_LDFLAGS }}"
+
+- name: Build and Install PHP {{ PHP_VERSION }}
+  shell: "{{ item }}"
+  args:
+    executable: "/bin/bash"
+    chdir: "{{ PHP_SRC_LOCAL_PATH }}/php-{{ PHP_VERSION }}"
+  with_items:
+    - "make -j{{ ansible_processor_vcpus }}"
+    - "make install"
